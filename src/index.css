@@ -2,8 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Fix flowbite modal size */
+[data-testid="modal"] {
+  max-width: 448px !important;
+  margin: auto !important;
 }
