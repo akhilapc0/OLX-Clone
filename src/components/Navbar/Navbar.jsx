@@ -13,8 +13,9 @@ import { useNavigate, useLocation, Link } from 'react-router-dom'
 import { useWishlist } from '../Context/Wishlist'
 import heartIcon from '../../assets/favorite.svg'
 import { toast } from 'react-toastify'
-
+import { ItemsContext } from '../Context/Item'
 const Navbar = (props) => {
+    
     const [user] = useAuthState(auth)
     const { toggleModal, toggleModalSell, searchQuery, setSearchQuery } = props
     const [showMenu, setShowMenu] = useState(false)
@@ -22,7 +23,8 @@ const Navbar = (props) => {
     const navigate = useNavigate()
     const location = useLocation()
     const { wishlist } = useWishlist()
-
+const { items } = ItemsContext()
+const validWishlistCount = wishlist.filter(w => items.some(i => i.id === w.id)).length
     const handleSearchChange = (e) => {
         setSearchQuery(e.target.value)
         if (location.pathname !== '/') navigate('/')
@@ -82,11 +84,15 @@ const Navbar = (props) => {
                 </div>
 
                 {user && (
-                    <Link to="/wishlist" className="mx-2 relative cursor-pointer group hover:bg-gray-200 p-2 rounded-full">
-                        <img src={heartIcon} alt="Wishlist" className="w-6" />
-                        <span className="absolute -top-0 -right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
-                            {wishlist.length}
-                        </span>
+                    <Link to="/wishlist" className="mx-2 relative cursor-pointer hover:bg-gray-200 p-2 rounded-full flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-[#002f34]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {validWishlistCount > 0 && (
+                            <span className="absolute -top-0 -right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center font-bold">
+                               {validWishlistCount}
+                            </span>
+                        )}
                     </Link>
                 )}
 
@@ -129,7 +135,7 @@ const Navbar = (props) => {
                         <img className='w-6 ml-1' src={arrow} alt="Arrow" />
                     </div>
                     <ul className='sub-lists flex items-center space-x-4 text-[14px] ml-4'>
-                        {['Cars','Properties','Mobiles','Jobs','Electronics','Bikes','Furniture'].map(cat => (
+                        {['Cars', 'Properties', 'Mobiles', 'Jobs', 'Electronics', 'Bikes', 'Furniture'].map(cat => (
                             <li key={cat} className="cursor-pointer hover:text-[#00a49f]"
                                 onClick={() => handleSearchChange({ target: { value: cat } })}>
                                 {cat}

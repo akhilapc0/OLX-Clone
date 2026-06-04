@@ -1,6 +1,4 @@
-import { Modal, ModalBody } from "flowbite-react"
 import google from '../../assets/google.png'
-import mobile from '../../assets/mobile.svg'
 import guitar from '../../assets/guita.png'
 import love from '../../assets/love.png'
 import avatar from '../../assets/avatar.png'
@@ -61,27 +59,28 @@ const Login = ({ toggleModal, status }) => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={toggleModal}>
             <div className="bg-white w-full max-w-md mx-4 rounded-lg shadow-xl overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
-                
-                {/* Close button */}
-                <div className="relative">
-                    <img onClick={toggleModal} className="w-6 absolute top-4 right-4 cursor-pointer z-10" src={close} alt="close" />
-                </div>
 
-                {/* Carousel */}
-                <div className="px-6 pt-8 pb-4">
-                    <div className="flex flex-col items-center justify-center h-48">
-                        <img className="w-20 mb-3" src={slides[slideIndex].img} alt="slide" />
+                {/* Close */}
+                <div className="relative px-6 pt-6">
+                    <img onClick={toggleModal} className="w-5 absolute top-4 right-4 cursor-pointer" src={close} alt="close" />
+
+                    {/* Title */}
+                    <h2 className="text-center text-xl font-bold text-[#002f34] mb-4">
+                        {isSignup ? "Create an Account" : "Login to OLX"}
+                    </h2>
+
+                    {/* Carousel */}
+                    <div className="flex flex-col items-center justify-center h-40 mb-2">
+                        <img className="w-16 mb-2" src={slides[slideIndex].img} alt="slide" />
                         <p className="text-center font-semibold text-sm text-[#002f34] max-w-xs">
                             {slides[slideIndex].text}
                         </p>
                     </div>
 
                     {/* Dots */}
-                    <div className="flex justify-center gap-2 mb-4">
+                    <div className="flex justify-center gap-2 mb-5">
                         {slides.map((_, i) => (
-                            <button
-                                key={i}
-                                onClick={() => setSlideIndex(i)}
+                            <button key={i} onClick={() => setSlideIndex(i)}
                                 className={`h-2 w-2 rounded-full ${i === slideIndex ? 'bg-teal-400' : 'bg-gray-300'}`}
                             />
                         ))}
@@ -90,54 +89,67 @@ const Login = ({ toggleModal, status }) => {
 
                 {/* Body */}
                 <div className="px-6 pb-6">
-                    <div className="flex items-center justify-start rounded-md border-2 border-black p-3 mb-4 cursor-pointer">
-                        <img className="w-6 mr-2" src={mobile} alt="mobile" />
-                        <p className="text-sm font-bold">Continue with phone</p>
+
+                    {/* Google */}
+                    <div onClick={handleGoogleLogin}
+                        className="flex items-center justify-center rounded-md border border-gray-300 p-3 mb-4 cursor-pointer hover:bg-gray-50 relative">
+                        <img className="w-5 absolute left-3" src={google} alt="google" />
+                        <p className="text-sm text-gray-600">Continue with Google</p>
                     </div>
 
-                    <div onClick={handleGoogleLogin} className="flex items-center justify-center rounded-md border-2 border-gray-300 p-3 mb-4 cursor-pointer relative hover:bg-gray-50">
-                        <img className="w-6 absolute left-3" src={google} alt="google" />
-                        <p className="text-sm text-gray-500">Continue with Google</p>
+                    {/* Divider */}
+                    <div className="flex items-center gap-2 mb-4">
+                        <div className="flex-1 h-px bg-gray-200"></div>
+                        <p className="text-sm text-gray-400">OR</p>
+                        <div className="flex-1 h-px bg-gray-200"></div>
                     </div>
 
-                    <div className="text-center mb-4">
-                        <p className="font-semibold text-sm">OR</p>
-                    </div>
-
+                    {/* Form */}
                     <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
-                        <input
-                            type="email"
-                            placeholder="Enter Email"
-                            className="border p-2 rounded-md text-sm w-full"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                        />
-                        <input
-                            type="password"
-                            placeholder="Enter Password"
-                            className="border p-2 rounded-md text-sm w-full"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                        />
+                        <div>
+                            <label className="text-sm text-gray-600 mb-1 block">Email Address</label>
+                            <input type="email" placeholder="example@mail.com"
+                                className="border border-gray-300 p-2 rounded-md text-sm w-full focus:outline-none focus:border-teal-500"
+                                value={email} onChange={(e) => setEmail(e.target.value)} />
+                        </div>
+                        <div>
+                            <label className="text-sm text-gray-600 mb-1 block">Password</label>
+                            <input type="password" placeholder="Min 6 characters"
+                                className="border border-gray-300 p-2 rounded-md text-sm w-full focus:outline-none focus:border-teal-500"
+                                value={password} onChange={(e) => setPassword(e.target.value)} />
+                        </div>
+
                         {error && <p className="text-red-500 text-xs">{error}</p>}
-                        <button type="submit" disabled={loading} className="bg-teal-600 text-white p-2 rounded-md text-sm font-semibold w-full">
-                            {loading ? "Please wait..." : isSignup ? "Signup" : "Login"}
+
+                        <button type="submit" disabled={loading}
+                            className="bg-teal-600 text-white p-2 rounded-md text-sm font-semibold w-full hover:bg-teal-700">
+                            {loading ? "Please wait..." : isSignup ? "Sign Up" : "Login"}
                         </button>
                     </form>
 
+                    {/* Toggle Login/Signup */}
                     <div className="pt-4 text-center">
-                        <p className="text-sm underline cursor-pointer text-blue-600" onClick={() => setIsSignup(!isSignup)}>
-                            {isSignup ? "Already have an account? Login" : "Don't have an account? Signup"}
-                        </p>
+                        {isSignup ? (
+                            <p className="text-sm text-gray-500">
+                                Already have an account?{" "}
+                                <span className="text-teal-600 font-semibold cursor-pointer underline" onClick={() => { setIsSignup(false); setError("") }}>
+                                    Login here
+                                </span>
+                            </p>
+                        ) : (
+                            <p className="text-sm text-gray-500">
+                                Don't have an account?{" "}
+                                <span className="text-teal-600 font-semibold cursor-pointer underline" onClick={() => { setIsSignup(true); setError("") }}>
+                                    Register here
+                                </span>
+                            </p>
+                        )}
                     </div>
 
-                    <div className="pt-6 flex flex-col items-center">
-                        <p className="text-xs text-gray-500">All your personal details are safe with us.</p>
-                        <p className="text-xs pt-3 text-center text-gray-500">
-                            If you continue, you are accepting
-                            <span className="text-blue-600"> OLX Terms and Conditions and Privacy Policy</span>
-                        </p>
-                    </div>
+                    <p className="text-xs text-gray-400 text-center mt-4">
+                        Your personal details are safe with us. By continuing, you agree to our{" "}
+                        <span className="text-teal-600">Terms and Conditions and Privacy Policy</span>
+                    </p>
                 </div>
             </div>
         </div>
