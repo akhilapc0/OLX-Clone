@@ -34,25 +34,50 @@ const Login = ({ toggleModal, status }) => {
         }
     }
 
-    const handleEmailAuth = async (e) => {
-        e.preventDefault()
-        setError("")
-        try {
-            setLoading(true)
-            let user
-            if (isSignup) {
-                user = await signupWithEmail(email, password)
-            } else {
-                user = await loginWithEmail(email, password)
-            }
-            await saveUserToFirestore(user)
-            toggleModal()
-        } catch (err) {
-            setError(err.message)
-        } finally {
-            setLoading(false)
-        }
+
+    const validate = () => {
+    setError("")
+    if (!email.trim()) {
+        setError("Email is required")
+        return false
     }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(email)) {
+        setError("Enter a valid email address")
+        return false
+    }
+    if (!password) {
+        setError("Password is required")
+        return false
+    }
+    if (password.length < 6) {
+        setError("Password must be at least 6 characters")
+        return false
+    }
+    return true
+}
+
+
+const handleEmailAuth = async (e) => {
+    e.preventDefault()
+    if (!validate()) return  // ← stop if validation fails
+    setError("")
+    try {
+        setLoading(true)
+        let user
+        if (isSignup) {
+            user = await signupWithEmail(email, password)
+        } else {
+            user = await loginWithEmail(email, password)
+        }
+        await saveUserToFirestore(user)
+        toggleModal()
+    } catch (err) {
+        setError(err.message)
+    } finally {
+        setLoading(false)
+    }
+}
 
     if (!status) return null
 

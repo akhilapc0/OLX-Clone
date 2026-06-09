@@ -55,7 +55,36 @@ const MyAdsPage = () => {
     }
   }
 
+
+  const validateEdit = () => {
+    if (!editTitle.trim()) {
+        toast.error("Title is required"); return false
+    }
+    if (editTitle.trim().length < 3) {
+        toast.error("Title must be at least 3 characters"); return false
+    }
+    if (!editPrice.trim()) {
+        toast.error("Price is required"); return false
+    }
+    if (isNaN(editPrice) || Number(editPrice) <= 0) {
+        toast.error("Enter a valid price"); return false
+    }
+    if (!editCategory) {
+        toast.error("Please select a category"); return false
+    }
+    if (!editDescription.trim()) {
+        toast.error("Description is required"); return false
+    }
+    if (editDescription.trim().length < 10) {
+        toast.error("Description must be at least 10 characters"); return false
+    }
+    return true
+}
+
+
   const handleEditSave = async () => {
+    if(!validateEdit()) return
+
     try {
       let imageUrl = editImagePreview
       if (editImage) {

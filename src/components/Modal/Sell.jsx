@@ -27,10 +27,40 @@ const Sell = ({ toggleModalSell, status, setItems }) => {
         if (e.target.files) setImage(e.target.files[0])
     }
 
-    const handleSubmit = async (e) => {
-        e.preventDefault()
-        if (!auth?.user) { alert('Please login to continue'); return }
-        setSubmitting(true)
+    const validate = () => {
+    if (!title.trim()) {
+        alert("Title is required"); return false
+    }
+    if (title.trim().length < 3) {
+        alert("Title must be at least 3 characters"); return false
+    }
+    if (!category.trim()) {
+        alert("Please enter a category"); return false
+    }
+    if (!price.trim()) {
+        alert("Price is required"); return false
+    }
+    if (isNaN(price) || Number(price) <= 0) {
+        alert("Enter a valid price (numbers only)"); return false
+    }
+    if (!description.trim()) {
+        alert("Description is required"); return false
+    }
+    if (description.trim().length < 10) {
+        alert("Description must be at least 10 characters"); return false
+    }
+    if (!image) {
+        alert("Please upload an image"); return false
+    }
+    return true
+}
+
+    
+const handleSubmit = async (e) => {
+    e.preventDefault()
+    if (!auth?.user) { alert('Please login to continue'); return }
+    if (!validate()) return  // ← stop if validation fails
+    setSubmitting(true)
 
         const readImageAsDataUrl = (file) => {
             return new Promise((resolve, reject) => {
