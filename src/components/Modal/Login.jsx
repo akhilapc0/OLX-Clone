@@ -17,9 +17,31 @@ const Login = ({ toggleModal, status }) => {
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [isSignup, setIsSignup] = useState(false)
-    const [error, setError] = useState("")
     const [loading, setLoading] = useState(false)
     const [slideIndex, setSlideIndex] = useState(0)
+
+    // Separate error state for each field
+    const [errors, setErrors] = useState({})
+
+    const validate = () => {
+        const newErrors = {}
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+        if (!email.trim()) {
+            newErrors.email = "Email is required"
+        } else if (!emailRegex.test(email)) {
+            newErrors.email = "Enter a valid email address"
+        }
+
+        if (!password) {
+            newErrors.password = "Password is required"
+        } else if (password.length < 6) {
+            newErrors.password = "Password must be at least 6 characters"
+        }
+
+        setErrors(newErrors)
+        return Object.keys(newErrors).length === 0
+    }
 
     const handleGoogleLogin = async () => {
         try {
@@ -28,56 +50,32 @@ const Login = ({ toggleModal, status }) => {
             await saveUserToFirestore(result.user)
             toggleModal()
         } catch (err) {
-            setError(err.message)
+            setErrors({ general: err.message })
         } finally {
             setLoading(false)
         }
     }
 
-
-    const validate = () => {
-    setError("")
-    if (!email.trim()) {
-        setError("Email is required")
-        return false
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-        setError("Enter a valid email address")
-        return false
-    }
-    if (!password) {
-        setError("Password is required")
-        return false
-    }
-    if (password.length < 6) {
-        setError("Password must be at least 6 characters")
-        return false
-    }
-    return true
-}
-
-
-const handleEmailAuth = async (e) => {
-    e.preventDefault()
-    if (!validate()) return  // ← stop if validation fails
-    setError("")
-    try {
-        setLoading(true)
-        let user
-        if (isSignup) {
-            user = await signupWithEmail(email, password)
-        } else {
-            user = await loginWithEmail(email, password)
+    const handleEmailAuth = async (e) => {
+        e.preventDefault()
+        if (!validate()) return
+        setErrors({})
+        try {
+            setLoading(true)
+            let user
+            if (isSignup) {
+                user = await signupWithEmail(email, password)
+            } else {
+                user = await loginWithEmail(email, password)
+            }
+            await saveUserToFirestore(user)
+            toggleModal()
+        } catch (err) {
+            setErrors({ general: "Invalid email or password. Please try again." })
+        } finally {
+            setLoading(false)
         }
-        await saveUserToFirestore(user)
-        toggleModal()
-    } catch (err) {
-        setError(err.message)
-    } finally {
-        setLoading(false)
     }
-}
 
     if (!status) return null
 
@@ -85,11 +83,9 @@ const handleEmailAuth = async (e) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50" onClick={toggleModal}>
             <div className="bg-white w-full max-w-md mx-4 rounded-lg shadow-xl overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
 
-                {/* Close */}
                 <div className="relative px-6 pt-6">
                     <img onClick={toggleModal} className="w-5 absolute top-4 right-4 cursor-pointer" src={close} alt="close" />
 
-                    {/* Title */}
                     <h2 className="text-center text-xl font-bold text-[#002f34] mb-4">
                         {isSignup ? "Create an Account" : "Login to OLX"}
                     </h2>
@@ -112,9 +108,7 @@ const handleEmailAuth = async (e) => {
                     </div>
                 </div>
 
-                {/* Body */}
                 <div className="px-6 pb-6">
-
                     {/* Google */}
                     <div onClick={handleGoogleLogin}
                         className="flex items-center justify-center rounded-md border border-gray-300 p-3 mb-4 cursor-pointer hover:bg-gray-50 relative">
@@ -129,22 +123,56 @@ const handleEmailAuth = async (e) => {
                         <div className="flex-1 h-px bg-gray-200"></div>
                     </div>
 
-                    {/* Form */}
-                    <form onSubmit={handleEmailAuth} className="flex flex-col gap-3">
-                        <div>
+                    {/* General error */}
+                    {errors.general && (
+                        <p className="text-red-500 text-xs mb-3 text-center bg-red-50 p-2 rounded">
+                            {errors.general}
+                        </p>
+                    )}
+
+                    <form onSubmit={handleEmailAuth} className="flex flex-col gap-1">
+
+                        {/* Email */}
+                        <div className="mb-2">
                             <label className="text-sm text-gray-600 mb-1 block">Email Address</label>
-                            <input type="email" placeholder="example@mail.com"
-                                className="border border-gray-300 p-2 rounded-md text-sm w-full focus:outline-none focus:border-teal-500"
-                                value={email} onChange={(e) => setEmail(e.target.value)} />
-                        </div>
-                        <div>
-                            <label className="text-sm text-gray-600 mb-1 block">Password</label>
-                            <input type="password" placeholder="Min 6 characters"
-                                className="border border-gray-300 p-2 rounded-md text-sm w-full focus:outline-none focus:border-teal-500"
-                                value={password} onChange={(e) => setPassword(e.target.value)} />
+                            <input
+                                type="email"
+                                placeholder="example@mail.com"
+                                className={`border p-2 rounded-md text-sm w-full focus:outline-none ${errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-teal-500'}`}
+                                value={email}
+                                onChange={(e) => {
+                                    setEmail(e.target.value)
+                                    if (errors.email) setErrors(prev => ({ ...prev, email: "" }))
+                                }}
+                            />
+                            {/* Error shown directly below input */}
+                            {errors.email && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                    <span>⚠</span> {errors.email}
+                                </p>
+                            )}
                         </div>
 
-                        {error && <p className="text-red-500 text-xs">{error}</p>}
+                        {/* Password */}
+                        <div className="mb-3">
+                            <label className="text-sm text-gray-600 mb-1 block">Password</label>
+                            <input
+                                type="password"
+                                placeholder="Min 6 characters"
+                                className={`border p-2 rounded-md text-sm w-full focus:outline-none ${errors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 focus:border-teal-500'}`}
+                                value={password}
+                                onChange={(e) => {
+                                    setPassword(e.target.value)
+                                    if (errors.password) setErrors(prev => ({ ...prev, password: "" }))
+                                }}
+                            />
+                            {/* Error shown directly below input */}
+                            {errors.password && (
+                                <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                                    <span>⚠</span> {errors.password}
+                                </p>
+                            )}
+                        </div>
 
                         <button type="submit" disabled={loading}
                             className="bg-teal-600 text-white p-2 rounded-md text-sm font-semibold w-full hover:bg-teal-700">
@@ -152,19 +180,20 @@ const handleEmailAuth = async (e) => {
                         </button>
                     </form>
 
-                    {/* Toggle Login/Signup */}
                     <div className="pt-4 text-center">
                         {isSignup ? (
                             <p className="text-sm text-gray-500">
                                 Already have an account?{" "}
-                                <span className="text-teal-600 font-semibold cursor-pointer underline" onClick={() => { setIsSignup(false); setError("") }}>
+                                <span className="text-teal-600 font-semibold cursor-pointer underline"
+                                    onClick={() => { setIsSignup(false); setErrors({}) }}>
                                     Login here
                                 </span>
                             </p>
                         ) : (
                             <p className="text-sm text-gray-500">
                                 Don't have an account?{" "}
-                                <span className="text-teal-600 font-semibold cursor-pointer underline" onClick={() => { setIsSignup(true); setError("") }}>
+                                <span className="text-teal-600 font-semibold cursor-pointer underline"
+                                    onClick={() => { setIsSignup(true); setErrors({}) }}>
                                     Register here
                                 </span>
                             </p>
